@@ -326,8 +326,8 @@ void loop() {
   }
 }
    b41a0:	e8bd 4008 	ldmia.w	sp!, {r3, lr}
-    delay(1000);
-   b41a4:	f44f 707a 	mov.w	r0, #1000	; 0x3e8
+    delay(30000);
+   b41a4:	f247 5030 	movw	r0, #30000	; 0x7530
    b41a8:	f001 b888 	b.w	b52bc <delay>
     Serial.println("Disconnected! Trying to reconnect now...");
    b41ac:	f001 fa3e 	bl	b562c <_Z16_fetch_usbserialv>

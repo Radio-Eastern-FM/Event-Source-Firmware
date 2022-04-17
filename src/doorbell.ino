@@ -1,6 +1,8 @@
 #include <MQTT.h>
 #include "Debounce/Debounce.h"
 
+SYSTEM_THREAD(ENABLED);
+
 Debounce doorbellDebounced = Debounce();
 
 const String url = "192.168.0.26";
@@ -22,7 +24,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   memcpy(p, payload, length);
   p[length] = NULL;
   
-  Serial.println("Callback");
   Serial.println(p);
 }
 
@@ -37,23 +38,17 @@ void connect(MQTT & client){
 void setup() {
   Serial.begin(9600);
   Serial.println("Start!");
-  RGB.control(true);
+  
   pinMode(LED, OUTPUT);
   pinMode(Doorbell, INPUT_PULLDOWN);
+  
   doorbellDebounced.attach(Doorbell, INPUT_PULLDOWN);
-  doorbellDebounced.interval(100);
+  doorbellDebounced.interval(20);
 }
 
-bool isConnected = false;
 // Loop
 void loop() {
-  if(client.isConnected() && !isConnected){ // Just connected
-    Serial.println("Connected.");
-  }
-  
-  isConnected = client.isConnected();
-  
-  if (isConnected){
+  if (client.isConnected()){
     // Loop MQTT
     client.loop();
     
@@ -62,18 +57,30 @@ void loop() {
       if(doorbellDebounced.read() == 1){ // Only publish a rising edge
         Serial.println("Doorbell!");
         
+        // Publish doorbell
+        client.publish(topic, "1");
+        
         digitalWrite(LED, HIGH);
         delay(200);
         digitalWrite(LED, LOW);
-        delay(200);
-        
-        // Publish doorbell
-        client.publish(topic, "1");
       }
     }
   }
   else{
+    pinMode(Doorbell, OUTPUT);
+    digitalWrite(Doorbell, HIGH);
+    
     Serial.println("Disconnected! Trying to reconnect now...");
-    connect(client);
+    
+    while(!client.isConnected()){
+      connect(client);
+      delay(500);
+    }
+    
+    // Now connected
+    Serial.println("Connected.");
+    
+    digitalWrite(Doorbell, LOW);
+    pinMode(Doorbell, INPUT_PULLDOWN);
   }
 }

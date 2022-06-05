@@ -168,8 +168,8 @@ void checkWeather(){
       // Measurements are valid
       Serial.println("Temperature: " + String(temp) + "    Humidity: " + String(hum));
       // Publish weather
-      client.publish(topic + "weather/humidity", String(temp));
-      client.publish(topic + "weather/temperature", String(hum));
+      client.publish(topic + "weather/humidity", String(hum));
+      client.publish(topic + "weather/temperature", String(temp));
       
       // Update last checked
       DHTlastChecked = millis();

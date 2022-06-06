@@ -79,19 +79,21 @@ void setup() {
 
 // Loop
 void loop() {
-  // Loop MQTT
-  client.loop();
-  
-  checkDoorbell();
-  checkWeather();
-  
-  if (!client.isConnected()){
+  if (client.isConnected()){
+    // Loop MQTT
+    client.loop();
+    
+    checkDoorbell();
+    checkWeather();
+  }
+  else {
     // Disable doorbell LED
     pinMode(DOORBELL, OUTPUT);
     digitalWrite(DOORBELL, HIGH);
     
     Serial.println("Disconnected! Trying to reconnect now...");
     
+    // Loop until connected
     while(!client.isConnected()){
       connect(client);
       delay(500);

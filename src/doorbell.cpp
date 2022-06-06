@@ -28,6 +28,9 @@ SYSTEM_THREAD(ENABLED);
 #define BOARD_LED D7
 #define BLUE_LED D9
 
+// Define Quality of Service
+const MQTT::EMQTT_QOS QOS = MQTT::EMQTT_QOS::QOS2;
+
 ///// Parameter definitions
 // Define the parameters for temperature sensor interval
 const long unsigned int DHTinterval = 15000;
@@ -86,14 +89,13 @@ void setup() {
 
 // Loop
 void loop() {
-  if (client.isConnected()){
-    // Loop MQTT
-    client.loop();
-    
-    checkDoorbell();
-    checkWeather();
-  }
-  else {
+  // Loop MQTT
+  client.loop();
+  
+  checkDoorbell();
+  checkWeather();
+  
+  if (!client.isConnected()){
     // Disable doorbell LED
     pinMode(DOORBELL, OUTPUT);
     digitalWrite(DOORBELL, HIGH);
@@ -131,10 +133,11 @@ void callback(char* recievedTopic, byte* payload, unsigned int length) {
 
 // Connect to MQTT server and register subscriptions
 void connect(MQTT & client){
+  client.disconnect();
   // connect to the server(unique id by Time.now())
   client.connect(deviceName + "_" + String(Time.now()), MQTTusername, MQTTpassword);
   // Subscribe to topic so that we know that the device is sending messages
-  client.subscribe(topic + "#");
+  client.subscribe(topic + "#", QOS);
 }
 
 void statusFailure(){
@@ -178,8 +181,8 @@ void checkWeather(){
       // Measurements are valid
       Serial.println("Temperature: " + String(temp) + "    Humidity: " + String(hum));
       // Publish weather
-      client.publish(topic + "weather/humidity", String(hum));
-      client.publish(topic + "weather/temperature", String(temp));
+      client.publish(topic + "weather/humidity", String(hum), QOS);
+      client.publish(topic + "weather/temperature", String(temp), QOS);
       
       // Update last checked
       DHTlastChecked = millis();
@@ -194,7 +197,7 @@ void checkDoorbell(){
       Serial.println("Button pressed.");
       
       // Publish doorbell pressed to the MQTT topic
-      client.publish(topic + "doorbell", "1");
+      client.publish(topic + "doorbell", "1", QOS);
     }
   }
 }

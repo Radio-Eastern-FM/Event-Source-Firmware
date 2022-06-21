@@ -1,6 +1,6 @@
 # doorbell
 
-A Particle project named doorbell
+Sources events from an embedded device and sends them to an MQTT topic. Arduino compatible, utilising the Particle Argon ESP32 Device
 
 ## Run MQTT broker
 
